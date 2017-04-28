@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Flasky - {{ user.username }}{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/Jcrop.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/mdb.min.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-slider.min.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/user/profile.css') }}">
+<style>
+#ex1Slider .slider-selection {
+    background: #BABABA;
+}
+
+}
+</style>
+{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+
+    <div class="col-md-4">
+        <div class="view overlay hm-black-strong">
+            <img class="img img-responsive" src="{{ url_for('static', filename='img/x-23.jpg') }}" id="target">
+            <div class="mask flex-center">
+                <p class="white-text" >change image</p>
+            </div>
+
+            <form method="post" id="crop_form" enctype="multipart/form-data">
+                <input type="hidden" name="cropx" id="cropx" value="0" />
+                <input type="hidden" name="cropy" id="cropy" value="0" />
+                <input type="hidden" name="cropw" id="cropw" value="0" />
+                <input type="hidden" name="croph" id="croph" value="0" />
+                <div id="photo-input-container">
+                    <input type="file" id="user-photo" name=photo accept="image/*" style="display: none;" />
+                </div>
+            </form>
+
+        </div>
+
+        <!-- Trigger the modal with a button -->
+        <button type="button" class="btn btn-info btn-lg btn-modal" data-toggle="modal" data-target="#myModal" style="display: none;">Open Modal</button>
+
+        <!-- Modal -->
+        <div id="myModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+
+            <!-- Modal content-->
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h3 class="modal-title">调整照片的位置和尺寸</h3>
+                </div>
+                <div class="modal-body">
+                    <div id="image-container">
+                        <img class="img" src="#" id="img-preview" alt="user-image" style="width: inherit; height: 256px;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default submit-photo-btn" data-dismiss="modal">确定</button>
+                </div>
+            </div>
+
+          </div>
+        </div>
+    </div>
+
+    <div class="col-md-８">
+        <div class="profile-header">
+            <h1>{{ user.username }}</h1>
+            {% if user.name or user.location %}
+            <p>
+                {% if user.name %}{{ user.name }}{% endif %}
+                {% if user.location %}
+                    From <a href="http://maps.baidu.com/?q={{ user.location }}">{{ user.location }}</a>
+                {% endif %}
+            </p>
+            {% endif %}
+            <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
+            {% if user.about_me %}<p>{{ user.about_me }}</p>{% endif %}
+            <p>Member since {{ moment(user.date_joined).format('L') }}. Last seen {{ moment(user.last_seen).fromNow() }}.</p>
+            <p>
+                {% if user == current_user %}
+                <a class="btn btn-default" href="{{ url_for('.edit_profile') }}">Edit Profile</a>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="/static/js/Jcrop.js"></script>
+<script src="/static/js/mdb.min.js"></script>
+<script src="/static/js/bootstrap-slider.min.js"></script>
+<script src="/static/js/jquery.ae.image.resize.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        var jcrop_api;
+
+        function initJcrop(){
+            $('#img-preview').Jcrop({
+                setSelect: [ 0, 0, 256, 256],
+                aspectRatio: 1,
+                canResize: false,
+                allowSelect: false,
+                onChange: setFromCoords
+                }, function(){
+                    jcrop_api = this;
+            });
+        };
+
+        $(".white-text").click(function() {
+            $("input[id='user-photo']").click();
+        });
+
+        $("input[id='user-photo']").change(function() {
+            if (this.files && this.files[0]) {
+
+                if(jcrop_api){
+                    jcrop_api.destroy();
+                }
+
+                var reader = new FileReader();
+
+                reader.readAsDataURL(this.files[0]);
+
+                reader.onload = function (e) {
+                    $('#img-preview').attr('src', e.target.result);
+                    initJcrop()
+                };
+            };
+
+            $(".btn-modal").click();
+            $(this).val("");
+        });
+
+        function setFromCoords(obj){
+            $("#cropx").val(obj.x);
+            $("#cropy").val(obj.y);
+            $("#cropw").val(obj.w);
+            $("#croph").val(obj.h);
+        };
+
+        $('#img-preview').on('cropstart cropmove cropend', function(){
+            console.log(obj.x, obj.y, obj.w, obj.h);
+
+            // console.log(e,s,c);
+            // @todo: do something useful with c
+            // { x: 10, y: 10, x2: 30, y2: 30, w: 20, h: 20 }
+            // c.x, c.y, c.w, c.h, ...
+            // or access s.selectionApiMethod() or s.core.apiMethod() etc
+            // compare event type with e.type (e.g. in if conditional, switch block)
+
+        });
+
+        $('.submit-photo-btn').click(function(){
+            $('form#crop_form').submit();
+            console.log($('form#crop_form').serialize());
+        });
+
+        $('form#crop_form').submit(function(){
+            var formData = new FormData($(this)[0]);
+            $.ajax({
+                url: "{{ url_for('users.upload_image', username=user.username) }}",
+                type: 'post',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(data) {
+                           alert("hello");
+                }
+            });
+        });
+    });
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,31 @@
+.panel-group {
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+.panel-group .panel {
+    padding: 0px;
+}
+
+.panel-group .panel + .panel {
+  margin-top: 65px;
+}
+
+.img-thumbnail {
+    width: 100%;
+    padding: 0px;
+    border-radius: 1px;
+    border: 0px
+}
+
+.panel-heading {
+    padding: 20px, 15px;
+}
+
+.panel-group .panel-footer{
+    border-bottom: 1px;
+}
+
+.nested-footer-first {
+    border-top: 0px;
+}

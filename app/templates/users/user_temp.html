@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Flasky - {{ user.username }}{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/Jcrop.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/mdb.min.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-slider.min.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/user/profile.css') }}">
+<style>
+#ex1Slider .slider-selection {
+    background: #BABABA;
+}
+</style>
+{% endblock %}
+
+{% block page_content %}
+<input type="file" id="user-photo" name=photo accept="image/*"/>
+
+<img class="img" src="#" id="img-preview" alt="user-image">
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="/static/js/Jcrop.js"></script>
+<script src="/static/js/mdb.min.js"></script>
+<script src="/static/js/bootstrap-slider.min.js"></script>
+<script src="/static/js/jquery.ae.image.resize.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        function readURL(input) {
+
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                console.log(input.files[0]);
+
+                reader.readAsDataURL(input.files[0]);
+
+                console.log(reader);
+
+                reader.onload = function (e) {
+                    $('#img-preview').attr('src', e.target.result);
+                };
+            }
+        };
+
+        $("input[id='user-photo']").change(function() {
+            readURL(this);
+            $(this).val("")
+        });
+
+    });
+
+
+</script>
+{% endblock %}
